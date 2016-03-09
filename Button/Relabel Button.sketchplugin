@@ -51,13 +51,13 @@ function setButtonPadding(buttonRect, textLayer, layers, padding) {
     if (layer != textLayer) {
       if (fixedWidth) {
         setLayerPaddingBottom(layerFrame, textFrame, deltaHeight);
-	  } else if (textAlignment == 1) { // right
-		setLayerPaddingRight(layerFrame, textFrame, deltaWidth);
-	  } else if (textAlignment == 2) { // center
-		setLayerPaddingCenter(layerFrame, textFrame, deltaWidth);
-	  } else { // 0 = left, 3 = justified
-		setLayerPaddingLeft(layerFrame, textFrame, deltaWidth);
-	  }
+			} else if (textAlignment == 1) { // right
+				setLayerPaddingRight(layerFrame, textFrame, deltaWidth);
+			} else if (textAlignment == 2) { // center
+				setLayerPaddingCenter(layerFrame, textFrame, deltaWidth);
+			} else { // 0 = left, 3 = justified
+				setLayerPaddingLeft(layerFrame, textFrame, deltaWidth);
+			}
     }
   }
 }
@@ -136,6 +136,10 @@ function invalidSelection() {
 
 // Main
 
+/* Main function
+ * textAlignment: 0=Left, 1=Right, 2=Center, -1=Use the text layer's alignment
+ */
+function relabelButton(textAlignment) {
 // set doc and selection to work around the Sketch 3.4 - 3.4.2 bug 
 // where plugins often target a non-foreground document 
 var doc = NSDocumentController.sharedDocumentController().currentDocument() || NSDocumentController.sharedDocumentController().documents().firstObject()
@@ -186,6 +190,11 @@ var text = [doc askForUserInput:"New button text" initialValue:[textLayer string
 
 // Only forge on if user didn't press Cancel
 if (text) {
+  // If a textAlignment is given, change the text layer to use that alignment
+  if (textAlignment >= 0 && textAlignment <= 3) {
+    [textLayer textAlignment] = textAlignment;
+  }
+
   // Set the text layer to the new text
   [textLayer setStringValue: text];
   [textLayer adjustFrameToFit];
@@ -196,3 +205,16 @@ if (text) {
 
   // Done!  
 }
+}
+
+// cmd + shift + ctrl + j
+function relabelButtonNatural() {
+	relabelButton(-1)
+}
+
+// cmd + alt + shift + ctrl + j
+function relabelButtonRight() {
+	relabelButton(1)
+}
+
+relabelButtonNatural()
