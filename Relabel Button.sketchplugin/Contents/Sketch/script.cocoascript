@@ -1,8 +1,6 @@
-// Relabel Button Plugin (cmd shift ctrl j)
-
 /*
   Author: Ken Moore (with bits from Alexander Kudymov's Dynamic Button plugin)
-  Version: 0.5
+  Version: 0.6
 
   The Relabel Button plugin lets you easily change the label of any button 
   (a group containing a text layer and other visual elements). Just select the 
@@ -140,81 +138,83 @@ function invalidSelection() {
  * textAlignment: 0=Left, 1=Right, 2=Center, -1=Use the text layer's alignment
  */
 function relabelButton(textAlignment) {
-// set doc and selection to work around the Sketch 3.4 - 3.4.2 bug 
-// where plugins often target a non-foreground document 
-var doc = NSDocumentController.sharedDocumentController().currentDocument() || NSDocumentController.sharedDocumentController().documents().firstObject()
-var selection = doc ? doc.findSelectedLayers() : nil
+		try {
+		// set doc and selection to work around the Sketch 3.4 - 3.4.2 bug 
+		// where plugins often target a non-foreground document 
+		var doc = NSDocumentController.sharedDocumentController().currentDocument() || NSDocumentController.sharedDocumentController().documents().firstObject()
+		var selection = doc ? doc.findSelectedLayers() : nil
 
-// Begin validation of selection
-// Ensure there's only one layer selected
-if ([selection count] != 1) {
-  invalidSelection();
+		// Begin validation of selection
+		// Ensure there's only one layer selected
+		if ([selection count] != 1) {
+			invalidSelection();
+		}
+
+		var group = [selection objectAtIndex:0];
+		var buttonRect = [group absoluteRect];
+
+		// Ensure the selected layer is a group
+		if (!(group instanceof MSLayerGroup)) {
+			invalidSelection();
+		}
+
+		var layers = [group layers];
+
+		// Ensure there are at least 2 layers in the group (text and one other layer at minimum)
+		if ([layers length] < 2) {
+			invalidSelection();
+		}
+
+		// Loop through child layers to identify the text layer
+		var textLayer = nil;
+		for (var i = 0; i < [layers length]; i++) {
+			var layer = [layers objectAtIndex:i];
+			if (layer instanceof MSTextLayer) {
+				textLayer = layer;
+				break;
+			}
+		}
+
+		// Ensure at least one text layer exists
+		if (!textLayer) {
+			invalidSelection();
+		}
+
+
+		// Extract current padding based on buttonRect and textLayer
+		var buttonPadding = getButtonPadding(buttonRect, textLayer);
+
+		// Prompt user for input of new button text
+		var text = [doc askForUserInput:"New button text" initialValue:[textLayer stringValue]];
+
+		// Only forge on if user didn't press Cancel
+		if (text) {
+			// If a textAlignment is given, change the text layer to use that alignment
+			if (textAlignment >= 0 && textAlignment <= 3) {
+				[textLayer setTextAlignment: textAlignment];
+			}
+
+			// Set the text layer to the new text
+			[textLayer setStringValue: text];
+			[textLayer adjustFrameToFit];
+
+			// Resize the button based on the original padding
+			setButtonPadding(buttonRect, textLayer, layers, buttonPadding);
+			group.resizeToFitChildrenWithOption(0); // resize the group field
+
+			// Done!  
+		}
+	} catch(e) {
+		log(e);
+	}
 }
 
-var group = [selection objectAtIndex:0];
-var buttonRect = [group absoluteRect];
-
-// Ensure the selected layer is a group
-if (!(group instanceof MSLayerGroup)) {
-  invalidSelection();
-}
-
-var layers = [group layers];
-
-// Ensure there are at least 2 layers in the group (text and one other layer at minimum)
-if ([layers length] < 2) {
-  invalidSelection();
-}
-
-// Loop through child layers to identify the text layer
-var textLayer = nil;
-for (var i = 0; i < [layers length]; i++) {
-  var layer = [layers objectAtIndex:i];
-  if (layer instanceof MSTextLayer) {
-    textLayer = layer;
-    break;
-  }
-}
-
-// Ensure at least one text layer exists
-if (!textLayer) {
-  invalidSelection();
-}
-
-
-// Extract current padding based on buttonRect and textLayer
-var buttonPadding = getButtonPadding(buttonRect, textLayer);
-
-// Prompt user for input of new button text
-var text = [doc askForUserInput:"New button text" initialValue:[textLayer stringValue]];
-
-// Only forge on if user didn't press Cancel
-if (text) {
-  // If a textAlignment is given, change the text layer to use that alignment
-  if (textAlignment >= 0 && textAlignment <= 3) {
-    [textLayer textAlignment] = textAlignment;
-  }
-
-  // Set the text layer to the new text
-  [textLayer setStringValue: text];
-  [textLayer adjustFrameToFit];
-
-  // Resize the button based on the original padding
-  setButtonPadding(buttonRect, textLayer, layers, buttonPadding);
-  group.resizeToFitChildrenWithOption(0); // resize the group field
-
-  // Done!  
-}
-}
-
-// cmd + shift + ctrl + j
+// cmd + j
 function relabelButtonNatural() {
 	relabelButton(-1)
 }
 
-// cmd + alt + shift + ctrl + j
+// cmd + ctrl + j
 function relabelButtonRight() {
 	relabelButton(1)
 }
-
-relabelButtonNatural()

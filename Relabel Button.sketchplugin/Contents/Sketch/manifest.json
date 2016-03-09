@@ -1,0 +1,30 @@
+{
+  "author" : "Ken Moore",
+  "commands" : [
+    {
+      "script" : "script.cocoascript",
+      "handler" : "relabelButtonNatural",
+      "shortcut" : "cmd j",
+      "name" : "Relabel Button",
+      "identifier" : "relabelButton"
+    },
+    {
+      "script" : "script.cocoascript",
+      "handler" : "relabelButtonRight",
+      "shortcut" : "cmd ctrl j",
+      "name" : "Relabel Button Right",
+      "identifier" : "relabelButtonRight"
+    },
+  ],
+  "menu": {
+    "isRoot": true,
+    "items": [
+      "relabelButton",
+      "relabelButtonRight",
+    ],
+  },
+  "identifier" : "com.kenmooredesign.sketch-relabel-button",
+  "version" : "0.6",
+  "description" : "Prompts for a button's new label then applies the text, resizes the button background and repositions any other interior elements while maintaining the existing padding.",
+  "name" : "Sketch Relabel Button"
+}
